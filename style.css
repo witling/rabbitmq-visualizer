@@ -1,5 +1,14 @@
+body {
+    margin: 0;
+}
+
 #overview {
     height: 100%;
     width: 100%;
     position: absolute;
+}
+
+#config {
+    padding: 5px;
+    background-color: #e1753e;
 }

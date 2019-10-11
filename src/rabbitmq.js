@@ -2,8 +2,69 @@ window.addEventListener('DOMContentLoaded', function() {
     'use strict';
     // using backwards-compatible javascript because windows server
     // runs very old version of ie.
+    var default_api_host = 'http://localhost:15672/api';
 
-    var api = 'http://localhost:15672/api';
+    function load_cookies() {
+        var cookies = {};
+        var kv_pairs = document.cookie.split(';');
+        for(var i in kv_pairs) {
+            var parts = kv_pairs[i].split('=');
+            cookies[parts[0]] = parts[1];
+        }
+        return cookies;
+    }
+
+    function save_cookies(cookies) {
+        // set cookie for a year
+        var date = new Date();
+        date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
+
+        var store_str = '';
+        for(var k in cookies) {
+            var v = cookies[k];
+            store_str += k + '=' + v + '; expires=' + date.toUTCString() + ';path=/';
+        }
+        document.cookie = store_str;
+    }
+
+    function set_host() {
+        var new_api_host = window.prompt('specify the rabbitmq host like <address>:<port>/<api_path>', cookies['host'] || default_api_host);
+        cookies['host'] = new_api_host;
+        save_cookies(cookies);
+        return cookies['host'];
+    }
+
+    var cookies = load_cookies();
+    cookies['host'] || set_host();
+
+    function create_config_popup() {
+        // TODO: replace with jQuery UI
+        var popup = document.createElement('div');
+        popup.id = 'config-popup';
+        popup.style['position'] = 'absolute';
+        popup.style['display'] = 'none';
+        popup.style['height'] = '50%';
+        popup.style['width'] = '30%';
+        popup.style['left'] = '50%';
+        popup.style['right'] = '50%';
+
+        var save_btn = document.createElement('button');
+        save_btn.innerHTML = 'save';
+        save_btn.onclick = function() {
+            document.getElementById('config-popup').style['display'] = 'none';
+        };
+
+        var close_btn = document.createElement('button');
+        close_btn.innerHTML = 'close';
+        close_btn.onclick = function() {
+            document.getElementById('config-popup').style['display'] = 'none';
+        };
+
+        popup.appendChild(save_btn);
+        popup.appendChild(close_btn);
+
+        return popup;
+    }
 
     function err(msg) {
         console.log(msg);
@@ -11,7 +72,7 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // TODO: make async
     function load(path, handler, err_handler) {
-        var uri = api + path;
+        var uri = cookies['host'] + path;
         var request = new XMLHttpRequest();
         /*
         request.onreadystatechange = function() {
@@ -100,11 +161,6 @@ window.addEventListener('DOMContentLoaded', function() {
             klay: {
                 spacing: 150,
             }
-            /*
-            componentSpacing: 20,
-            nodeOverlap: 4,
-            nodeDimensionsIncludeLabels: true,
-            */
         };
         var layout = cy.layout(options);
 
@@ -115,7 +171,7 @@ window.addEventListener('DOMContentLoaded', function() {
         cy.elements('node[ty = "exchange"]')
             .forEach(function(n) {
                 if (n.neighborhood().length === 0) {
-                    //n.hide();
+                    n.hide();
                 }
             });
     }
@@ -175,24 +231,6 @@ window.addEventListener('DOMContentLoaded', function() {
             edges.push({ data: { source: consumer.queue.name, target: id, ty: 'binding-consumer' } });
         }
 
-        /*
-        for (var i in exchanges) {
-            var exchange = exchanges[i];
-
-            if (exchange.name === '') {
-                exchange.name = '<<default>>';
-            }
-
-            var exchange_name = ;
-            nodes.push({ data: { label: exchange_name, id: exchange.name, name: exchange.name, ty: 'exchange' } });
-        }
-
-        for (var i in queues) {
-            var queue = queues[i];
-            nodes.push({ data: { label: queue.name, id: queue.name, name: queue.name, ty: 'queue' }, classes: 'label' });
-        }
-        */
-
         for (var i in bindings) {
             var binding = bindings[i];
 
@@ -215,4 +253,9 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     build();
+    document.getElementById('config').appendChild(create_config_popup());
+
+    document.getElementById('config').onclick = function(evt) {
+        document.getElementById('config-popup').style['display'] = 'block';
+    };
 });
