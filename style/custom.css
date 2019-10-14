@@ -8,7 +8,16 @@ body {
     position: absolute;
 }
 
-#config {
+#navbar {
     padding: 5px;
     background-color: #e1753e;
+}
+
+#config-dialog {
+    display: none;
+}
+
+#config-dialog label,
+#config-dialog input {
+    display: block;
 }

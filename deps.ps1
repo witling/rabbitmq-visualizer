@@ -35,6 +35,8 @@ Add-Dependency $dependencies "https://raw.githubusercontent.com/cytoscape/cytosc
 Add-Dependency $dependencies "https://raw.githubusercontent.com/cytoscape/cytoscape.js-cxtmenu/master/cytoscape-cxtmenu.js" 
 Add-Dependency $dependencies "https://raw.githubusercontent.com/cytoscape/cytoscape.js-klay/master/cytoscape-klay.js" 
 Add-Dependency $dependencies "https://raw.githubusercontent.com/OpenKieler/klayjs/master/klay.js" 
+Add-Dependency $dependencies "https://code.jquery.com/jquery-3.4.1.min.js" 
+Add-Dependency $dependencies "https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" 
 
 Add-Local-Dependency $dependencies "src/rabbitmq.js"
 

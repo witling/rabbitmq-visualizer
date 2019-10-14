@@ -1,16 +1,23 @@
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
     'use strict';
     // using backwards-compatible javascript because windows server
     // runs very old version of ie.
     var default_api_host = 'http://localhost:15672/api';
+    var default_api_username = 'visualizer';
+    var default_api_password = 'NoPasswordHere';
 
     function load_cookies() {
         var cookies = {};
+        /*
         var kv_pairs = document.cookie.split(';');
-        for(var i in kv_pairs) {
+        for (var i in kv_pairs) {
             var parts = kv_pairs[i].split('=');
             cookies[parts[0]] = parts[1];
         }
+        */
+        cookies['host'] = default_api_host;
+        cookies['username'] = default_api_username;
+        cookies['password'] = default_api_password;
         return cookies;
     }
 
@@ -19,12 +26,23 @@ window.addEventListener('DOMContentLoaded', function() {
         var date = new Date();
         date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
 
-        var store_str = '';
-        for(var k in cookies) {
+        for (var k in cookies) {
             var v = cookies[k];
-            store_str += k + '=' + v + '; expires=' + date.toUTCString() + ';path=/';
+            document.cookie += k + '=' + v + '; expires=' + date.toUTCString() + ';path=/';
         }
-        document.cookie = store_str;
+    }
+
+    function load_settings() {
+        host.val(cookies['host']);
+        username.val(cookies['username']);
+        password.val(cookies['password']);
+    }
+
+    function save_settings() {
+        cookies['host'] = host.val();
+        cookies['username'] = username.val();
+        cookies['password'] = password.val();
+        save_cookies(cookies);
     }
 
     function set_host() {
@@ -35,36 +53,11 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     var cookies = load_cookies();
+    var host = $("#config-host");
+    var username = $("#config-username");
+    var password = $("#config-password");
     cookies['host'] || set_host();
-
-    function create_config_popup() {
-        // TODO: replace with jQuery UI
-        var popup = document.createElement('div');
-        popup.id = 'config-popup';
-        popup.style['position'] = 'absolute';
-        popup.style['display'] = 'none';
-        popup.style['height'] = '50%';
-        popup.style['width'] = '30%';
-        popup.style['left'] = '50%';
-        popup.style['right'] = '50%';
-
-        var save_btn = document.createElement('button');
-        save_btn.innerHTML = 'save';
-        save_btn.onclick = function() {
-            document.getElementById('config-popup').style['display'] = 'none';
-        };
-
-        var close_btn = document.createElement('button');
-        close_btn.innerHTML = 'close';
-        close_btn.onclick = function() {
-            document.getElementById('config-popup').style['display'] = 'none';
-        };
-
-        popup.appendChild(save_btn);
-        popup.appendChild(close_btn);
-
-        return popup;
-    }
+    load_settings();
 
     function err(msg) {
         console.log(msg);
@@ -74,6 +67,7 @@ window.addEventListener('DOMContentLoaded', function() {
     function load(path, handler, err_handler) {
         var uri = cookies['host'] + path;
         var request = new XMLHttpRequest();
+        var auth = cookies['username'] + ':' + cookies['password'];
         /*
         request.onreadystatechange = function() {
             if(this.readyState === 4 && this.status === 200) {
@@ -84,6 +78,7 @@ window.addEventListener('DOMContentLoaded', function() {
         }
         */
         request.open('GET', uri, false);
+        request.setRequestHeader('Authorization', 'Basic ' + btoa(auth));
         request.send();
 
         if (request.status === 200) {
@@ -97,39 +92,39 @@ window.addEventListener('DOMContentLoaded', function() {
         var cy = cytoscape({
             'container': document.getElementById('overview'),
             'style': [{
-                    'selector': '[ty = "exchange"]',
-                    'css': {
-                        'background-color': 'red',
-                        'shape': 'rectangle',
-                    }
-                },
-                {
-                    'selector': '[ty = "consumer"]',
-                    'css': {
-                        'background-color': 'purple',
-                        'shape': 'diamond',
-                    }
-                },
-                {
-                    'selector': '.label',
-                    'style': {
-                        'text-valign': 'bottom',
-                        'text-halign': 'center',
-                    }
-                },
-                {
-                    'selector': 'node[label]',
-                    'style': {
-                        'label': 'data(label)',
-                    }
-                },
-                {
-                    'selector': 'edge',
-                    'style': {
-                        'label': 'data(label)',
-                        'curve-style': 'bezier',
-                    }
+                'selector': '[ty = "exchange"]',
+                'css': {
+                    'background-color': 'red',
+                    'shape': 'rectangle',
                 }
+            },
+            {
+                'selector': '[ty = "consumer"]',
+                'css': {
+                    'background-color': 'purple',
+                    'shape': 'diamond',
+                }
+            },
+            {
+                'selector': '.label',
+                'style': {
+                    'text-valign': 'bottom',
+                    'text-halign': 'center',
+                }
+            },
+            {
+                'selector': 'node[label]',
+                'style': {
+                    'label': 'data(label)',
+                }
+            },
+            {
+                'selector': 'edge',
+                'style': {
+                    'label': 'data(label)',
+                    'curve-style': 'bezier',
+                }
+            }
             ],
             elements: {
                 nodes: nodes,
@@ -141,17 +136,17 @@ window.addEventListener('DOMContentLoaded', function() {
         cy.cxtmenu({
             selector: '[ty = "queue"]',
             commands: [{
-                    content: '<span>on</span>',
-                    select: function(ele) {
-                        alert(ele);
-                    }
-                },
-                {
-                    content: '<span>off</span>',
-                    select: function(ele) {
-                        alert(ele);
-                    }
+                content: '<span>on</span>',
+                select: function (ele) {
+                    alert(ele);
                 }
+            },
+            {
+                content: '<span>off</span>',
+                select: function (ele) {
+                    alert(ele);
+                }
+            }
             ]
         });
 
@@ -169,7 +164,7 @@ window.addEventListener('DOMContentLoaded', function() {
         cy.minZoom(1);
         cy.maxZoom(4);
         cy.elements('node[ty = "exchange"]')
-            .forEach(function(n) {
+            .forEach(function (n) {
                 if (n.neighborhood().length === 0) {
                     n.hide();
                 }
@@ -216,8 +211,8 @@ window.addEventListener('DOMContentLoaded', function() {
         var nodes = [];
         var edges = [];
 
-        spawn_nodes(nodes, exchanges, function(ex) { return ex.name + ' (' + ex.type + ')'; }, 'exchange');
-        spawn_nodes(nodes, queues, function(qu) { return qu.name; }, 'queue', 'label');
+        spawn_nodes(nodes, exchanges, function (ex) { return ex.name + ' (' + ex.type + ')'; }, 'exchange');
+        spawn_nodes(nodes, queues, function (qu) { return qu.name; }, 'queue', 'label');
 
         var added_consumers = {};
         for (var i in consumers) {
@@ -252,10 +247,25 @@ window.addEventListener('DOMContentLoaded', function() {
         display(nodes, edges);
     }
 
-    build();
-    document.getElementById('config').appendChild(create_config_popup());
+    var config_dialog = $('#config-dialog').dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+            'Save': save_settings,
+            Cancel: function () {
+                config_dialog.dialog('close');
+            }
+        }
+    });
+    config_dialog.find('form').on('submit', function (evt) {
+        event.preventDefault();
+        save_settings();
+    });
 
-    document.getElementById('config').onclick = function(evt) {
-        document.getElementById('config-popup').style['display'] = 'block';
-    };
+    var config = $('#config');
+    config.button().on('click', function () {
+        config_dialog.dialog('open');
+    });
+
+    build();
 });
