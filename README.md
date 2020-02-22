@@ -1,6 +1,6 @@
 # rabbitmq-visualizer
 
-... is a standalone web page that uses the [RabbitMQ Management HTTP API](https://rawcdn.githack.com/rabbitmq/rabbitmq-management/v3.8.0/priv/www/api/index.html) to display the internal structure of a RabbitMQ server. It is designed with a focus on backward compatibility to support Internet Explorer aswell. Testing was done on Windows Servers.
+... is a standalone web page that uses the [RabbitMQ Management HTTP API](https://rawcdn.githack.com/rabbitmq/rabbitmq-management/v3.8.0/priv/www/api/index.html) to display the internal structure of a RabbitMQ server. It is designed with a focus on backward compatibility to support Internet Explorer as well. Testing was done on Windows Servers.
 
 ![rabbitmq-visualizer preview](./docs/preview.jpg)
 
